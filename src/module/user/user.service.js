@@ -17,7 +17,7 @@ export const createUser = async (data)=>{
       id: true,
       email: true,
       userType: true,
-      created_at: true,
+      createdAt: true,
     },
   });
   return user;
