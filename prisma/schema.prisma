@@ -63,7 +63,7 @@ model OrganizationProfile {
   name               String
   about              String?
   isActive           Boolean @default(true)
-  isVerified         Boolean @default(true)
+  isVerified         Boolean @default(false)
   organizationTypeId Int?
 
   publicEmail String?

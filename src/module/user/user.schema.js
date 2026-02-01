@@ -9,3 +9,11 @@ export const createUserSchema = z.object({
       .default("CANDIDATE"),
   }),
 });
+
+export const updateUserPasswordSchema = z.object({
+  body: z.object({
+    id: z.number("Id is required"),
+    oldPassword: z.string("Old password is required"),
+    newPassword: z.string("New password is required"),
+  }),
+});

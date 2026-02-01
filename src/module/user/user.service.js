@@ -1,6 +1,6 @@
 import { prisma } from "../../config/prisma.js";
 
-export const createUser = async (data)=>{
+export const createUser = async (data) => {
   const alreadyExist = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -21,5 +21,8 @@ export const createUser = async (data)=>{
     },
   });
   return user;
+};
 
-}
+export const getUsers = async () => {
+  return await prisma.user.findMany();
+};
