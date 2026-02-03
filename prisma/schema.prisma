@@ -1,4 +1,3 @@
-// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -6,7 +5,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "../src/node_modules/@prisma/client"
 }
 
 datasource db {
@@ -45,11 +44,11 @@ model User {
   addressId    String?  @unique
 
   organizationProfile OrganizationProfile?
-  recruiterProfile    RecruiterProfile?
+  recruiterProfile    RecruiterProfile?    @relation("RecruiterUser")
   candidateProfile    CandidateProfile?
   address             Address?             @relation(fields: [addressId], references: [id])
 
-  organizationRecruiters RecruiterProfile[]
+  organizationRecruiters RecruiterProfile[] @relation("RecruiterOrganization")
 }
 
 model OrganizationType {
@@ -98,9 +97,9 @@ model RecruiterProfile {
   isActive Boolean @default(true)
 
   // relation with user-table
-  user User @relation(fields: [userId], references: [id])
+  user User @relation("RecruiterUser", fields: [userId], references: [id])
 
-  organization User? @relation(fields: [organizationId], references: [id])
+  organization User? @relation("RecruiterOrganization", fields: [organizationId], references: [id])
 
   jobs Job[]
 }
