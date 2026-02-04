@@ -10,7 +10,7 @@ export const validateRequest = (schema) => {
       });
 
       req.body = parsed.body;
-      req.query = parsed.query;
+      // req.query = parsed.query;
       req.params = parsed.params;
 
       next();

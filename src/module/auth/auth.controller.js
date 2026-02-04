@@ -1,7 +1,4 @@
-import {
-  authenticateUser,
-  getUserById,
-} from "./auth.service.js";
+import { authenticateUser, getUserById } from "./auth.service.js";
 import {
   getAccessCookieOptions,
   getAccessTokenExpiresAt,
@@ -43,6 +40,7 @@ export const loginHandler = async (req, res) => {
       .status(200)
       .json({ status: "success", data: buildAuthResponse(user) });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ status: "error", message: error.message });
   }
 };
@@ -82,7 +80,9 @@ export const refreshHandler = async (req, res) => {
       .status(200)
       .json({ status: "success", data: buildAuthResponse(user) });
   } catch (error) {
-    return res.status(401).json({ status: "error", message: "Invalid refresh token" });
+    return res
+      .status(401)
+      .json({ status: "error", message: "Invalid refresh token" });
   }
 };
 
