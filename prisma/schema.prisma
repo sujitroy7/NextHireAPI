@@ -48,6 +48,8 @@ model User {
   address             Address?             @relation(fields: [addressId], references: [id])
 
   organizationRecruiters RecruiterProfile[] @relation("RecruiterOrganization")
+  jobsAsOrganization     Job[]              @relation("JobRecruiter")
+  jobsAsRecruiter        Job[]              @relation("JobOrganization")
 }
 
 model OrganizationType {
@@ -75,10 +77,7 @@ model OrganizationProfile {
   updatedAt DateTime @updatedAt
 
   organizationType OrganizationType? @relation(fields: [organizationTypeId], references: [id])
-
-  user User @relation(fields: [userId], references: [id])
-
-  jobs Job[]
+  user             User              @relation(fields: [userId], references: [id])
 }
 
 model RecruiterProfile {
@@ -99,8 +98,6 @@ model RecruiterProfile {
   user User @relation("RecruiterUser", fields: [userId], references: [id])
 
   organization User? @relation("RecruiterOrganization", fields: [organizationId], references: [id])
-
-  jobs Job[]
 }
 
 model CandidateProfile {
@@ -163,9 +160,9 @@ model Address {
 }
 
 model Job {
-  id                    String @id @default(uuid())
-  organizationProfileId String
-  recruiterProfileId    String
+  id             String @id @default(uuid())
+  organizationId String
+  recruiterId    String
 
   title       String
   description String
@@ -180,9 +177,9 @@ model Job {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  organizationProfile OrganizationProfile? @relation(fields: [organizationProfileId], references: [id])
-  recruiterProfile    RecruiterProfile?    @relation(fields: [recruiterProfileId], references: [id])
-  jobApplications     JobApplication[]
+  organization    User?            @relation("JobOrganization", fields: [organizationId], references: [id])
+  recruiter       User?            @relation("JobRecruiter", fields: [recruiterId], references: [id])
+  jobApplications JobApplication[]
 }
 
 model JobApplication {
