@@ -70,3 +70,70 @@ export const updateJobSchema = z
       path: ["salaryMin"],
     }
   );
+
+export const getCandidateJobsSchema = z
+  .object({
+    query: z
+      .object({
+        page: z.coerce.number().int().positive().default(1),
+        limit: z.coerce.number().int().positive().max(100).default(10),
+        sortBy: z
+          .enum(["publishedAt", "createdAt", "salaryMin", "salaryMax", "title"])
+          .default("publishedAt"),
+        sortOrder: z.enum(["asc", "desc"]).default("desc"),
+        employmentType: EmploymentTypeEnum.optional(),
+        isActive: z
+          .preprocess(
+            (value) => {
+              if (typeof value === "boolean") {
+                return value ? "true" : "false";
+              }
+              if (typeof value === "string") {
+                return value.toLowerCase();
+              }
+              return value;
+            },
+            z.enum(["true", "false"]).default("true")
+          )
+          .transform((value) => value === "true"),
+        organizationId: z.string().uuid().optional(),
+        recruiterId: z.string().uuid().optional(),
+        search: z.string().min(1).max(200).optional(),
+        salaryMin: z.coerce.number().int().positive().optional(),
+        salaryMax: z.coerce.number().int().positive().optional(),
+        publishedFrom: z.coerce.date().optional(),
+        publishedTo: z.coerce.date().optional(),
+        createdFrom: z.coerce.date().optional(),
+        createdTo: z.coerce.date().optional(),
+      })
+      .refine(
+        (data) =>
+          data.salaryMin === undefined ||
+          data.salaryMax === undefined ||
+          data.salaryMin <= data.salaryMax,
+        {
+          message: "salaryMin cannot be greater than salaryMax",
+          path: ["salaryMin"],
+        }
+      )
+      .refine(
+        (data) =>
+          data.publishedFrom === undefined ||
+          data.publishedTo === undefined ||
+          data.publishedFrom <= data.publishedTo,
+        {
+          message: "publishedFrom cannot be after publishedTo",
+          path: ["publishedFrom"],
+        }
+      )
+      .refine(
+        (data) =>
+          data.createdFrom === undefined ||
+          data.createdTo === undefined ||
+          data.createdFrom <= data.createdTo,
+        {
+          message: "createdFrom cannot be after createdTo",
+          path: ["createdFrom"],
+        }
+      ),
+  });

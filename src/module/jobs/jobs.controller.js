@@ -4,6 +4,7 @@ import {
   updateJob,
   getAllJobsByRecruiter,
   getJobDetailes,
+  getCandidateJobs,
 } from "./jobs.service.js";
 
 export const createJobHandler = async (req, res) => {
@@ -91,6 +92,65 @@ export const updateJobDetailsHandler = async (req, res) => {
       publishedAt,
     });
     return res.status(200).json({ status: "success", data: job });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+export const getCandidateJobsHandler = async (req, res) => {
+  const {
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+    employmentType,
+    isActive,
+    organizationId,
+    recruiterId,
+    search,
+    salaryMin,
+    salaryMax,
+    publishedFrom,
+    publishedTo,
+    createdFrom,
+    createdTo,
+  } = req.query;
+
+  try {
+    const { jobs, total, page: pageNumber, limit: limitNumber } =
+      await getCandidateJobs({
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      employmentType,
+      isActive,
+      organizationId,
+      recruiterId,
+      search,
+      salaryMin,
+      salaryMax,
+      publishedFrom,
+      publishedTo,
+      createdFrom,
+      createdTo,
+    });
+
+    const totalPages = Math.ceil(total / limitNumber);
+
+    return res.status(200).json({
+      status: "success",
+      data: jobs,
+      meta: {
+        page: pageNumber,
+        limit: limitNumber,
+        total,
+        totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPrevPage: pageNumber > 1,
+      },
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: "error", message: error.message });
