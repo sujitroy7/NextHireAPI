@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { requireEnv } from "./env.js";
 
 export const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000;
@@ -20,24 +21,6 @@ export const signAccessToken = (user) => {
     expiresIn: accessExpiresIn,
   });
 };
-
-export const signRefreshToken = (user) => {
-  const secret = requireEnv("JWT_REFRESH_SECRET");
-  return jwt.sign(buildTokenPayload(user), secret, {
-    expiresIn: refreshExpiresIn,
-  });
-};
-
-export const verifyRefreshToken = (token) => {
-  const secret = requireEnv("JWT_REFRESH_SECRET");
-  return jwt.verify(token, secret);
-};
-
-export const getAccessTokenExpiresAt = () =>
-  new Date(Date.now() + ACCESS_TOKEN_TTL_MS);
-
-export const getRefreshTokenExpiresAt = () =>
-  new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
 const getCookieBaseOptions = () => {
   const isProd = process.env.NODE_ENV === "production";
@@ -67,11 +50,29 @@ export const getAccessCookieOptions = () => ({
 export const getRefreshCookieOptions = () => ({
   ...getCookieBaseOptions(),
   maxAge: REFRESH_TOKEN_TTL_MS,
-  path: "/api/auth/refresh",
+  path: "/",
 });
 
 export const getCsrfCookieOptions = () => ({
   secure: true,
   sameSite: "lax",
-  path: "/api/auth/refresh",
+  path: "/",
 });
+
+export function generateAccessToken(userId) {
+  return jwt.sign({ sub: userId }, requireEnv("ACCESS_TOKEN_SECRET"), {
+    expiresIn: "15m",
+  });
+}
+
+export function generateRefreshToken() {
+  return crypto.randomBytes(64).toString("hex");
+}
+
+export async function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+export function generateCsrfToken() {
+  return crypto.randomUUID();
+}

@@ -10,7 +10,7 @@ import { loginSchema } from "./auth.schema.js";
 const router = Router();
 
 router.post("/login", validateRequest(loginSchema), loginHandler);
-router.post("/refresh", refreshHandler);
+router.post("/refresh-token", refreshHandler);
 router.post("/logout", logoutHandler);
 
 export default router;

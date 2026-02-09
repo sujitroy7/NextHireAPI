@@ -27,5 +27,28 @@ export const createUser = async (data, prismaClient = prisma) => {
 };
 
 export const getUsers = async () => {
-  return await prisma.user.findMany();
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+      userType: true,
+      addressId: true,
+      createdAt: true,
+    },
+  });
+};
+
+export const getUserById = async (id) => {
+  return prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+      userType: true,
+      addressId: true,
+      createdAt: true,
+    },
+  });
 };

@@ -16,7 +16,7 @@ app.use(
     origin: requireEnv("WHITE_LISTED_DOMAINS").split(","),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   }),
 );
 app.use(express.json());

@@ -50,6 +50,7 @@ model User {
   organizationRecruiters RecruiterProfile[] @relation("RecruiterOrganization")
   jobsAsOrganization     Job[]              @relation("JobRecruiter")
   jobsAsRecruiter        Job[]              @relation("JobOrganization")
+  refreshTokens          RefreshToken[]
 }
 
 model OrganizationType {
@@ -195,4 +196,22 @@ model JobApplication {
   candidate CandidateProfile @relation(fields: [candidateId], references: [id])
 
   @@unique([jobId, candidateId])
+}
+
+model RefreshToken {
+  id        String @id @default(cuid())
+  tokenHash String @unique
+  userId    String
+
+  device    String?
+  ipAddress String?
+
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -1,24 +1,17 @@
-import { authenticateUser, getUserById } from "./auth.service.js";
 import {
-  getAccessTokenExpiresAt,
+  authenticateUser,
+  createRefreshToken,
+  updateRefreshToken,
+} from "./auth.service.js";
+import {
+  generateCsrfToken,
+  generateRefreshToken,
   getCsrfCookieOptions,
   getRefreshCookieOptions,
-  getRefreshTokenExpiresAt,
+  hashToken,
   signAccessToken,
-  signRefreshToken,
-  verifyRefreshToken,
 } from "../../utils/authTokens.js";
-import crypto from "crypto";
-
-const buildAuthResponse = (user, accessToken) => ({
-  user,
-  roles: [user.userType],
-  accessToken,
-  session: {
-    accessTokenExpiresAt: getAccessTokenExpiresAt(),
-    refreshTokenExpiresAt: getRefreshTokenExpiresAt(),
-  },
-});
+import { getUserById } from "../user/user.service.js";
 
 export const loginHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -32,16 +25,22 @@ export const loginHandler = async (req, res) => {
         .json({ status: "error", message: "Invalid email or password" });
     }
 
-    const accessToken = signAccessToken(user);
-    const csrfToken = crypto.randomUUID();
-    const refreshToken = signRefreshToken(user);
+    const refreshToken = generateRefreshToken();
 
-    res.cookie("refresh-token", refreshToken, getRefreshCookieOptions());
-    res.cookie("csrf-token", csrfToken, getCsrfCookieOptions());
+    await createRefreshToken(user.id, {
+      refreshToken,
+      device: req.headers["user-agent"],
+      ipAddress: req.ip,
+    });
 
-    return res
+    res
+      .cookie("refresh-token", refreshToken, getRefreshCookieOptions())
+      .cookie("csrf-token", generateCsrfToken(), getCsrfCookieOptions())
       .status(200)
-      .json({ status: "success", data: buildAuthResponse(user, accessToken) });
+      .json({
+        status: "success",
+        data: { accessToken: signAccessToken(user) },
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: "error", message: error.message });
@@ -49,49 +48,56 @@ export const loginHandler = async (req, res) => {
 };
 
 export const refreshHandler = async (req, res) => {
-  let refreshToken = req.cookies?.["refresh-token"];
-  const csrfCookie = req.cookies.csrfToken;
+  let refreshToken = req.cookies["refresh-token"];
+  const csrfCookie = req.cookies["csrf-token"];
   const csrfHeader = req.headers["x-csrf-token"];
 
+  // validate input data
   if (!refreshToken) {
     return res
       .status(401)
       .json({ status: "error", message: "Refresh token required" });
   }
 
-  if (!csrfCookie || csrfHeader !== csrfCookie) return res.status(403);
+  if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    return res
+      .status(403)
+      .json({ status: "error", message: "Invalid CSRF token" });
+  }
 
   try {
-    const payload = verifyRefreshToken(refreshToken);
-    if (!payload || typeof payload === "string" || !payload.sub) {
+    // update old refresh token on DB
+    const storedToken = await updateRefreshToken(refreshToken);
+    if (storedToken === null)
       return res
-        .status(401)
+        .status(403)
         .json({ status: "error", message: "Invalid refresh token" });
-    }
 
-    const user = await getUserById(payload.sub);
-
-    if (!user) {
-      return res
-        .status(401)
-        .json({ status: "error", message: "Invalid refresh token" });
-    }
-
-    const accessToken = signAccessToken(user);
-    const newCsrfToken = crypto.randomUUID();
-    const newRefreshToken = signRefreshToken(user);
-
-    res.cookie("refresh-token", newRefreshToken, getRefreshCookieOptions());
-    res.cookie("csrf-token", newCsrfToken, getCsrfCookieOptions());
-
-    return res.status(200).json({
-      status: "success",
-      data: buildAuthResponse(user, accessToken),
+    // create new refresh token on DB
+    const newRefreshToken = generateRefreshToken();
+    await createRefreshToken(storedToken.userId, {
+      refreshToken: newRefreshToken,
+      device: req.headers["user-agent"],
+      ipAddress: req.ip,
     });
+
+    // return tokens
+    const user = await getUserById(storedToken.userId);
+    const accessToken = signAccessToken(user);
+    res
+      .cookie("refresh-token", newRefreshToken, getRefreshCookieOptions())
+      .cookie("csrf-token", generateCsrfToken(), getCsrfCookieOptions())
+      .status(200)
+      .json({
+        status: "success",
+        data: { accessToken },
+      });
   } catch (error) {
-    return res
-      .status(401)
-      .json({ status: "error", message: "Invalid refresh token" });
+    console.error(error);
+    return res.status(401).json({
+      status: "error",
+      message: "Invalid refresh token",
+    });
   }
 };
 
