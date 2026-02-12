@@ -4,11 +4,11 @@ import {
   updateRefreshToken,
 } from "./auth.service.js";
 import {
-  generateCsrfToken,
+  generatePermissionToken,
   generateRefreshToken,
-  getCsrfCookieOptions,
+  getAccessCookieOptions,
+  getPermissionCookieOptions,
   getRefreshCookieOptions,
-  hashToken,
   signAccessToken,
 } from "../../utils/authTokens.js";
 import { getUserById } from "../user/user.service.js";
@@ -33,13 +33,20 @@ export const loginHandler = async (req, res) => {
       ipAddress: req.ip,
     });
 
+    const permissionsToken = generatePermissionToken(user.id, user.userType);
+    const accessToken = signAccessToken(user);
+
     res
       .cookie("refresh-token", refreshToken, getRefreshCookieOptions())
-      .cookie("csrf-token", generateCsrfToken(), getCsrfCookieOptions())
+      .cookie("access-token", accessToken, getAccessCookieOptions())
+      .cookie(
+        "permissions-token",
+        permissionsToken,
+        getPermissionCookieOptions(),
+      )
       .status(200)
       .json({
         status: "success",
-        data: { accessToken: signAccessToken(user) },
       });
   } catch (error) {
     console.error(error);
@@ -49,20 +56,12 @@ export const loginHandler = async (req, res) => {
 
 export const refreshHandler = async (req, res) => {
   let refreshToken = req.cookies["refresh-token"];
-  const csrfCookie = req.cookies["csrf-token"];
-  const csrfHeader = req.headers["x-csrf-token"];
 
   // validate input data
   if (!refreshToken) {
     return res
       .status(401)
       .json({ status: "error", message: "Refresh token required" });
-  }
-
-  if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-    return res
-      .status(403)
-      .json({ status: "error", message: "Invalid CSRF token" });
   }
 
   try {
@@ -86,11 +85,15 @@ export const refreshHandler = async (req, res) => {
     const accessToken = signAccessToken(user);
     res
       .cookie("refresh-token", newRefreshToken, getRefreshCookieOptions())
-      .cookie("csrf-token", generateCsrfToken(), getCsrfCookieOptions())
+      .cookie("access-token", accessToken, getAccessCookieOptions())
+      .cookie(
+        "permissions-token",
+        generatePermissionToken(user.id, user.userType),
+        getPermissionCookieOptions(),
+      )
       .status(200)
       .json({
         status: "success",
-        data: { accessToken },
       });
   } catch (error) {
     console.error(error);
@@ -103,7 +106,8 @@ export const refreshHandler = async (req, res) => {
 
 export const logoutHandler = async (_req, res) => {
   res.clearCookie("refresh-token", getRefreshCookieOptions());
-  res.clearCookie("csrf-token", newCsrfToken, getCsrfCookieOptions());
+  res.clearCookie("permissions-token", getPermissionCookieOptions());
+  res.clearCookie("access-token", getAccessCookieOptions());
 
   return res.status(200).json({ status: "success" });
 };

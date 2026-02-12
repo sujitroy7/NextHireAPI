@@ -4,7 +4,7 @@ import { requireEnv } from "../utils/env.js";
 export const authenticate = (allowedRoles = []) => {
   return (req, res, next) => {
     try {
-      const authToken = req.headers?.authorization?.split(" ")?.[1];
+      const authToken = req.cookies["access-token"];
 
       if (!authToken) throw new Error("Token required!");
 

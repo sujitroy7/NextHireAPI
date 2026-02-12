@@ -24,9 +24,9 @@ export const signAccessToken = (user) => {
 
 const getCookieBaseOptions = () => {
   const isProd = process.env.NODE_ENV === "production";
-  const sameSite = process.env.COOKIE_SAMESITE || "lax";
+  const sameSite = process.env.COOKIE_SAMESITE || "strict";
   const secureEnv = process.env.COOKIE_SECURE;
-  const secure = secureEnv === "true" ? true : isProd;
+  const secure = secureEnv === "true" ? true : true; // Always true as requested
 
   const options = {
     httpOnly: true,
@@ -53,16 +53,21 @@ export const getRefreshCookieOptions = () => ({
   path: "/",
 });
 
-export const getCsrfCookieOptions = () => ({
-  secure: true,
-  sameSite: "lax",
+export const getPermissionCookieOptions = () => ({
+  ...getCookieBaseOptions(),
+  maxAge: ACCESS_TOKEN_TTL_MS,
   path: "/",
 });
 
-export function generateAccessToken(userId) {
-  return jwt.sign({ sub: userId }, requireEnv("ACCESS_TOKEN_SECRET"), {
-    expiresIn: "15m",
-  });
+export function generatePermissionToken(userId, userRole) {
+  return jwt.sign(
+    {
+      sub: userId,
+      role: userRole, // ORGANIZATION, RECRUITER, CANDIDATE
+    },
+    requireEnv("PERMISSIONS_SECRET"),
+    { expiresIn: "15m" },
+  );
 }
 
 export function generateRefreshToken() {
@@ -71,8 +76,4 @@ export function generateRefreshToken() {
 
 export async function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
-}
-
-export function generateCsrfToken() {
-  return crypto.randomUUID();
 }
