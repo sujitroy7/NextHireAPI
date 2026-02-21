@@ -4,6 +4,8 @@ import {
   createUserHandler,
   getAllUsersHandler,
   getMyUserDetailsHandler,
+  getRecruitersHandler,
+  deleteRecruiterHandler,
 } from "./user.controller.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
 import { createUserSchema, createRecruiterUserSchema } from "./user.schema.js";
@@ -23,6 +25,16 @@ router.post(
   authenticate(["ORGANIZATION"]),
   validateRequest(createRecruiterUserSchema),
   createRecruiterUserHandler,
+);
+
+// get list of recruiters for the org
+router.get("/recruiters", authenticate(["ORGANIZATION"]), getRecruitersHandler);
+
+// hard delete recruiter profile and user
+router.delete(
+  "/recruiter/:recruiterId",
+  authenticate(["ORGANIZATION"]),
+  deleteRecruiterHandler,
 );
 
 // get current logged in user details

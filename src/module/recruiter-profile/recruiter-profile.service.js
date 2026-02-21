@@ -48,5 +48,28 @@ export const updateRecruiterProfile = async (userId, data) => {
 };
 
 export const getRecruiterProfile = async (userId) => {
-  return await prisma.recruiterProfile.findFirst({ where: { userId } });
+  return await prisma.recruiterProfile.findFirst({
+    where: { userId },
+    select: {
+      id: true,
+      userId: true,
+      firstName: true,
+      lastName: true,
+      publicEmail: true,
+      publicPhone: true,
+      linkedinUrl: true,
+      about: true,
+      isActive: true,
+      organization: {
+        select: {
+          organizationProfile: {
+            select: {
+              name: true,
+              logoUrl: true,
+            },
+          },
+        },
+      },
+    },
+  });
 };
