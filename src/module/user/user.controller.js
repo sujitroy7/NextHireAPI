@@ -66,8 +66,9 @@ export const getMyUserDetailsHandler = async (req, res) => {
     } = await getUserById(userId);
 
     const profile = organizationProfile ?? recruiterProfile ?? candidateProfile;
-    const fullName =
-      profile?.name ?? profile?.firstName + " " + profile?.lastName;
+    const fullName = !profile
+      ? null
+      : (profile?.name ?? profile?.firstName + " " + profile?.lastName);
 
     return res
       .status(200)
