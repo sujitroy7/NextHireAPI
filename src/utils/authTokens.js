@@ -55,7 +55,7 @@ export const getRefreshCookieOptions = () => ({
 
 export const getPermissionCookieOptions = () => ({
   ...getCookieBaseOptions(),
-  maxAge: ACCESS_TOKEN_TTL_MS,
+  maxAge: REFRESH_TOKEN_TTL_MS,
   path: "/",
 });
 
