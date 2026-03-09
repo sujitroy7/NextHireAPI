@@ -11,9 +11,7 @@ export const validateRequest = (schema) => {
       if (parsed.body) {
         req.body = parsed.body;
       }
-      // if (parsed.query) {
-      //   req.query = { ...req.query, ...parsed.query };
-      // }
+
       if (parsed.params) {
         req.params = parsed.params;
       }
