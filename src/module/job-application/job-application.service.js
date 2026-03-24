@@ -108,3 +108,75 @@ export const updateJobApplicationStatus = async (applicationId, status) => {
     data: { status },
   });
 };
+
+export const getOrganizationCandidates = async (filters) => {
+  const { organizationId, page, limit, search, status } = filters;
+
+  const pageNumber =
+    Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+  const limitNumber =
+    Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
+
+  const where = {
+    job: {
+      organizationId,
+    },
+    ...(status ? { status } : {}),
+    ...(search
+      ? {
+          OR: [
+            {
+              candidate: {
+                firstName: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              candidate: {
+                lastName: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              job: {
+                title: { contains: search, mode: "insensitive" },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
+
+  const [distinctCandidates, applications] = await Promise.all([
+    prisma.jobApplication.groupBy({
+      by: ["candidateId"],
+      where,
+    }),
+    prisma.jobApplication.findMany({
+      where,
+      distinct: ["candidateId"],
+      orderBy: { appliedAt: "desc" },
+      skip: (pageNumber - 1) * limitNumber,
+      take: limitNumber,
+      include: {
+        candidate: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            headline: true,
+            publicEmail: true,
+          },
+        },
+        job: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const total = distinctCandidates.length;
+
+  return { applications, total, page: pageNumber, limit: limitNumber };
+};

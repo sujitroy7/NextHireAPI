@@ -6,12 +6,14 @@ import {
   getCandidateApplicationsSchema,
   getJobApplicationsSchema,
   updateJobApplicationStatusSchema,
+  getOrganizationCandidatesSchema,
 } from "./job-application.schema.js";
 import {
   applyForJobHandler,
   getCandidateApplicationsHandler,
   getJobApplicationsByJobHandler,
   updateJobApplicationStatusHandler,
+  getOrganizationCandidatesHandler,
 } from "./job-application.controller.js";
 
 const router = Router();
@@ -21,7 +23,7 @@ router.post(
   "/",
   authenticate(["CANDIDATE"]),
   validateRequest(createJobApplicationSchema),
-  applyForJobHandler
+  applyForJobHandler,
 );
 
 // candidate get their job applications
@@ -29,7 +31,15 @@ router.get(
   "/candidate",
   authenticate(["CANDIDATE"]),
   validateRequest(getCandidateApplicationsSchema),
-  getCandidateApplicationsHandler
+  getCandidateApplicationsHandler,
+);
+
+// recruiter or organization get all candidates under the organization
+router.get(
+  "/organization/candidates",
+  authenticate(["RECRUITER", "ORGANIZATION"]),
+  validateRequest(getOrganizationCandidatesSchema),
+  getOrganizationCandidatesHandler,
 );
 
 // recruiter get applications for a job
@@ -37,7 +47,7 @@ router.get(
   "/job/:jobId",
   authenticate(["RECRUITER"]),
   validateRequest(getJobApplicationsSchema),
-  getJobApplicationsByJobHandler
+  getJobApplicationsByJobHandler,
 );
 
 // recruiter update application status
@@ -45,7 +55,7 @@ router.patch(
   "/:applicationId/status",
   authenticate(["RECRUITER"]),
   validateRequest(updateJobApplicationStatusSchema),
-  updateJobApplicationStatusHandler
+  updateJobApplicationStatusHandler,
 );
 
 export default router;

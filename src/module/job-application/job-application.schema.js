@@ -46,3 +46,12 @@ export const getJobApplicationsSchema = z.object({
     status: ApplicationStatusEnum.optional(),
   }),
 });
+
+export const getOrganizationCandidatesSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(10),
+    search: z.string().min(1).max(200).optional(),
+    status: ApplicationStatusEnum.optional(),
+  }),
+});

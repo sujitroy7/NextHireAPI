@@ -1,10 +1,12 @@
 import { getJobDetailes } from "../jobs/jobs.service.js";
+import { getRecruiterProfile } from "../recruiter-profile/recruiter-profile.service.js";
 import {
   createJobApplication,
   getCandidateApplications,
   getJobApplicationById,
   getApplicationsByJob,
   updateJobApplicationStatus,
+  getOrganizationCandidates,
 } from "./job-application.service.js";
 
 export const applyForJobHandler = async (req, res) => {
@@ -148,12 +150,67 @@ export const updateJobApplicationStatusHandler = async (req, res) => {
 
     const updatedApplication = await updateJobApplicationStatus(
       applicationId,
-      status
+      status,
     );
 
     return res
       .status(200)
       .json({ status: "success", data: updatedApplication });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+export const getOrganizationCandidatesHandler = async (req, res) => {
+  const userId = req?.user?.sub;
+  const userType = req?.user?.userType;
+  const { page, limit, search, status } = req.query;
+
+  try {
+    let organizationId;
+
+    if (userType === "ORGANIZATION") {
+      organizationId = userId;
+    } else {
+      const recruiterProfile = await getRecruiterProfile(userId, {
+        organizationId: true,
+      });
+      if (!recruiterProfile || !recruiterProfile.organizationId) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "Recruiter profile not found" });
+      }
+      organizationId = recruiterProfile.organizationId;
+    }
+
+    const {
+      applications,
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+    } = await getOrganizationCandidates({
+      organizationId,
+      page,
+      limit,
+      search,
+      status,
+    });
+
+    const totalPages = Math.ceil(total / limitNumber);
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        data: applications,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages,
+        },
+      },
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: "error", message: error.message });
