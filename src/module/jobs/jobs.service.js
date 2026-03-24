@@ -311,3 +311,86 @@ export const getJobTitlesForAutocomplete = async (searchQuery, limit) => {
 
   return titles.map((job) => job.title);
 };
+
+export const getOrganizationDashboardStats = async (organizationId) => {
+  const [totalJobs, activeApplications, interviewsScheduled, hires] =
+    await Promise.all([
+      prisma.job.count({ where: { organizationId } }),
+      prisma.jobApplication.count({
+        where: {
+          job: { organizationId },
+          status: { notIn: ["REJECTED", "HIRED"] },
+        },
+      }),
+      prisma.jobApplication.count({
+        where: {
+          job: { organizationId },
+          status: "SHORTLISTED",
+        },
+      }),
+      prisma.jobApplication.count({
+        where: {
+          job: { organizationId },
+          status: "HIRED",
+        },
+      }),
+    ]);
+
+  return { totalJobs, activeApplications, interviewsScheduled, hires };
+};
+
+export const getRecentJobsForOrganization = async (
+  organizationId,
+  limit = 5,
+) => {
+  return prisma.job.findMany({
+    where: { organizationId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: {
+      _count: {
+        select: { jobApplications: true },
+      },
+    },
+  });
+};
+
+export const getRecruiterDashboardStats = async (recruiterId) => {
+  const [totalJobs, activeApplications, interviewsScheduled, hires] =
+    await Promise.all([
+      prisma.job.count({ where: { recruiterId } }),
+      prisma.jobApplication.count({
+        where: {
+          job: { recruiterId },
+          status: { notIn: ["REJECTED", "HIRED"] },
+        },
+      }),
+      prisma.jobApplication.count({
+        where: {
+          job: { recruiterId },
+          status: "SHORTLISTED",
+        },
+      }),
+      prisma.jobApplication.count({
+        where: {
+          job: { recruiterId },
+          status: "HIRED",
+        },
+      }),
+    ]);
+
+  return { totalJobs, activeApplications, interviewsScheduled, hires };
+};
+
+export const getRecentJobsForRecruiter = async (recruiterId, limit = 5) => {
+  return prisma.job.findMany({
+    where: { recruiterId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: {
+      _count: {
+        select: { jobApplications: true },
+      },
+    },
+  });
+};

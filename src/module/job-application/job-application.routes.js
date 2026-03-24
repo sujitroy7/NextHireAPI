@@ -14,6 +14,8 @@ import {
   getJobApplicationsByJobHandler,
   updateJobApplicationStatusHandler,
   getOrganizationCandidatesHandler,
+  getRecentActivityHandler,
+  getRecruiterRecentActivityHandler,
 } from "./job-application.controller.js";
 
 const router = Router();
@@ -56,6 +58,20 @@ router.patch(
   authenticate(["RECRUITER"]),
   validateRequest(updateJobApplicationStatusSchema),
   updateJobApplicationStatusHandler,
+);
+
+// organization recent activity
+router.get(
+  "/organization/recent-activity",
+  authenticate(["ORGANIZATION"]),
+  getRecentActivityHandler,
+);
+
+// recruiter recent activity
+router.get(
+  "/recruiter/recent-activity",
+  authenticate(["RECRUITER"]),
+  getRecruiterRecentActivityHandler,
 );
 
 export default router;

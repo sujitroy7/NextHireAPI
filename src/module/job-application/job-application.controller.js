@@ -7,6 +7,8 @@ import {
   getApplicationsByJob,
   updateJobApplicationStatus,
   getOrganizationCandidates,
+  getRecentActivityForOrganization,
+  getRecentActivityForRecruiter,
 } from "./job-application.service.js";
 
 export const applyForJobHandler = async (req, res) => {
@@ -210,6 +212,55 @@ export const getOrganizationCandidatesHandler = async (req, res) => {
           totalPages,
         },
       },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+export const getRecentActivityHandler = async (req, res) => {
+  const userId = req?.user?.sub;
+  const userType = req?.user?.userType;
+
+  try {
+    let organizationId;
+
+    if (userType === "ORGANIZATION") {
+      organizationId = userId;
+    } else {
+      const recruiterProfile = await getRecruiterProfile(userId, {
+        organizationId: true,
+      });
+      if (!recruiterProfile || !recruiterProfile.organizationId) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "Recruiter profile not found" });
+      }
+      organizationId = recruiterProfile.organizationId;
+    }
+
+    const activity = await getRecentActivityForOrganization(organizationId, 5);
+
+    return res.status(200).json({
+      status: "success",
+      data: activity,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+export const getRecruiterRecentActivityHandler = async (req, res) => {
+  const recruiterId = req?.user?.sub;
+
+  try {
+    const activity = await getRecentActivityForRecruiter(recruiterId, 5);
+
+    return res.status(200).json({
+      status: "success",
+      data: activity,
     });
   } catch (error) {
     console.error(error);

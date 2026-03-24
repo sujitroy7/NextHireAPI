@@ -180,3 +180,52 @@ export const getOrganizationCandidates = async (filters) => {
 
   return { applications, total, page: pageNumber, limit: limitNumber };
 };
+
+export const getRecentActivityForOrganization = async (
+  organizationId,
+  limit = 5,
+) => {
+  return prisma.jobApplication.findMany({
+    where: {
+      job: { organizationId },
+    },
+    orderBy: { appliedAt: "desc" },
+    take: limit,
+    include: {
+      candidate: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      job: {
+        select: {
+          title: true,
+        },
+      },
+    },
+  });
+};
+
+export const getRecentActivityForRecruiter = async (recruiterId, limit = 5) => {
+  return prisma.jobApplication.findMany({
+    where: {
+      job: { recruiterId },
+    },
+    orderBy: { appliedAt: "desc" },
+    take: limit,
+    include: {
+      candidate: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      job: {
+        select: {
+          title: true,
+        },
+      },
+    },
+  });
+};

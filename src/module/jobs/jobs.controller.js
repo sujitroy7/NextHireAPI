@@ -10,6 +10,10 @@ import {
   getJobsByOrganization,
   getJobDetailsForOrganization,
   getJobTitlesForAutocomplete,
+  getOrganizationDashboardStats,
+  getRecentJobsForOrganization,
+  getRecruiterDashboardStats,
+  getRecentJobsForRecruiter,
 } from "./jobs.service.js";
 
 export const createJobHandler = async (req, res) => {
@@ -343,6 +347,44 @@ export const getJobTitleAutocompleteHandler = async (req, res) => {
     return res.status(200).json({
       status: "success",
       data: titles,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+export const getOrganizationDashboardStatsHandler = async (req, res) => {
+  const organizationId = req.user.sub;
+
+  try {
+    const [stats, recentJobs] = await Promise.all([
+      getOrganizationDashboardStats(organizationId),
+      getRecentJobsForOrganization(organizationId, 5),
+    ]);
+
+    return res.status(200).json({
+      status: "success",
+      data: { stats, recentJobs },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+export const getRecruiterDashboardStatsHandler = async (req, res) => {
+  const recruiterId = req.user.sub;
+
+  try {
+    const [stats, recentJobs] = await Promise.all([
+      getRecruiterDashboardStats(recruiterId),
+      getRecentJobsForRecruiter(recruiterId, 5),
+    ]);
+
+    return res.status(200).json({
+      status: "success",
+      data: { stats, recentJobs },
     });
   } catch (error) {
     console.error(error);

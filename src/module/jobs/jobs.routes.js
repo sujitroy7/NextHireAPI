@@ -19,6 +19,8 @@ import {
   getOrganizationJobsHandler,
   getOrganizationJobDetailHandler,
   getJobTitleAutocompleteHandler,
+  getOrganizationDashboardStatsHandler,
+  getRecruiterDashboardStatsHandler,
 } from "./jobs.controller.js";
 import { authenticate } from "../../middleware/authenticate.js";
 
@@ -88,6 +90,13 @@ router.patch(
   updateJobStatusHandler,
 );
 
+// Get recruiter dashboard stats
+router.get(
+  "/recruiter/dashboard/stats",
+  authenticate(["RECRUITER"]),
+  getRecruiterDashboardStatsHandler,
+);
+
 // =========================
 // ORGANIZATION JOBS PAGE
 // =========================
@@ -105,6 +114,13 @@ router.get(
   "/organization/jobs/:jobId",
   authenticate(["ORGANIZATION"]),
   getOrganizationJobDetailHandler,
+);
+
+// Get organization dashboard stats
+router.get(
+  "/organization/dashboard/stats",
+  authenticate(["ORGANIZATION"]),
+  getOrganizationDashboardStatsHandler,
 );
 
 export default router;
