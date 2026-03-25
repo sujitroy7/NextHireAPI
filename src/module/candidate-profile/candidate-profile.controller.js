@@ -9,7 +9,10 @@ import { getCandidateExperience } from "./candidate-experiance.services.js";
 export const createCandidateProfileHandler = async (req, res) => {
   const data = req.body;
   try {
-    const user = await createCandidateProfile(data);
+    const user = await createCandidateProfile({
+      ...data,
+      userId: req.user.sub,
+    });
     return res.status(201).json({ status: "success", data: user });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

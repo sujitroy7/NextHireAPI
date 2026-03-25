@@ -9,7 +9,6 @@ const stripHtml = (value) => value?.replace(/<[^>]*>?/gm, "") ?? "";
 
 export const createCandidateProfileSchema = z.object({
   body: z.object({
-    userId: z.string(),
     firstName: z.string().min(1, "First Name is required"),
     lastName: z.string().min(1, "Last Name is required"),
     headline: z.string().nullable().optional(),

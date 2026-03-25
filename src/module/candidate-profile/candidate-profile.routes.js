@@ -9,21 +9,24 @@ import {
   updateCandidateProfileSchema,
 } from "./candidate-profile.schema.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
+import { authenticate } from "../../middleware/authenticate.js";
 
 const router = Router();
 
 router.post(
   "/",
+  authenticate(["CANDIDATE"]),
   validateRequest(createCandidateProfileSchema),
-  createCandidateProfileHandler
+  createCandidateProfileHandler,
 );
 
 router.get("/:userId", getCandidateProfileHandler);
 
 router.patch(
   "/:userId",
+  authenticate(["CANDIDATE"]),
   validateRequest(updateCandidateProfileSchema),
-  updateCandidateProfileHandler
+  updateCandidateProfileHandler,
 );
 
 export default router;
