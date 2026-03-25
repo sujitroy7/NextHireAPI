@@ -165,6 +165,8 @@ model CandidateProfile {
 
   experiences CandidateExperience[]
 
+  skills String[] @default([])
+
   // relation with user-table
   user User @relation(fields: [userId], references: [id])
 

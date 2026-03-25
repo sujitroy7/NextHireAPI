@@ -31,6 +31,7 @@ export const createCandidateProfileSchema = z.object({
     isActive: z.boolean().default(true),
     isVerified: z.boolean().default(true), // Defaulting to true as per schema model default
     isOpenToWork: z.boolean().default(true),
+    skills: z.array(z.string()).optional(),
   }),
 });
 
@@ -60,5 +61,6 @@ export const updateCandidateProfileSchema = z.object({
         }),
       )
       .optional(),
+    skills: z.array(z.string()).optional(),
   }),
 });

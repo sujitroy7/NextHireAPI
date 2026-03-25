@@ -21,6 +21,7 @@ export const createCandidateProfile = async (data) => {
       isActive: data.isActive,
       isVerified: data.isVerified,
       isOpenToWork: data.isOpenToWork,
+      skills: data.skills || [],
     },
   });
 };
@@ -32,7 +33,7 @@ export const getCandidateProfile = async (userId) => {
 };
 
 export const updateCandidateProfile = async (userId, data) => {
-  const { experiences, skills: _, ...profileData } = data;
+  const { experiences, ...profileData } = data;
 
   const candidateProfile = await prisma.candidateProfile.findFirst({
     where: { userId },
