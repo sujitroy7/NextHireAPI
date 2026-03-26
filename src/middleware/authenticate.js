@@ -13,8 +13,7 @@ export const authenticate = (allowedRoles = []) => {
 
       if (
         !Array.isArray(allowedRoles) ||
-        allowedRoles.length === 0 ||
-        !allowedRoles.includes(req.user.userType)
+        (allowedRoles.length > 0 && !allowedRoles.includes(req.user.userType))
       ) {
         return res.status(403).json({
           message: "Access denied: insufficient permissions",
