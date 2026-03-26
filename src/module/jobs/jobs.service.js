@@ -88,6 +88,8 @@ export const getJobDetailes = async (
   },
   select = {
     id: true,
+    organizationId: true,
+    recruiterId: true,
     title: true,
     description: true,
     employmentType: true,

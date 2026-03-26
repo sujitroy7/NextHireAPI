@@ -107,7 +107,9 @@ export const getJobsByRecruiterHandler = async (req, res) => {
 
 export const getJobDetailsHandler = async (req, res) => {
   const { jobId } = req.params;
-  const isOwner = req.user?.sub === req.params?.recruiterId;
+  const isOwner =
+    req?.user?.role === "RECRUITER" &&
+    req?.user?.sub === req?.params?.recruiterId;
 
   try {
     const jobDetails = await getJobDetailes(jobId, {

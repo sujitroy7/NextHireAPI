@@ -45,7 +45,7 @@ router.get(
 );
 
 // Get single published job detail
-router.get("/jobs/:jobId", getJobDetailsHandler);
+router.get("/jobs/:jobId", authenticate([]), getJobDetailsHandler);
 
 // =========================
 // RECRUITER JOBS PAGE
